@@ -26,6 +26,7 @@ module.exports.loginUser = async (req, res) => {
     db.query(sql, email, async (err, rows) => {
 
         if(err || !rows.length) return res.status(400).json({ error: "User account does not exist" });
+        return res.status(200).json({});
 
         // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
 
@@ -39,7 +40,6 @@ module.exports.loginUser = async (req, res) => {
         // req.session.user = rows;
 
 //         return res.status(200).json(token);
-        return res.status(200);
 
     });
 
