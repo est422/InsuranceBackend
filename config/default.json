@@ -1,0 +1,6 @@
+{
+    "port": "7000",
+    "TOKEN_SECRET": "insuRancE@ppSecretT0ken",
+    "origin": ["http://localhost:3000"],
+    "methods": ["GET", "POST", "PUT", "DELETE"]
+}
