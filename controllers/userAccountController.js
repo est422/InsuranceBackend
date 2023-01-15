@@ -67,8 +67,13 @@ module.exports.createUserAccount = async (req, res, next) => {
             "Password": hashedPassword,
             "Phone": phone
         }
-        let sqlStatement = 'INSERT INTO useraccount SET ? ';
-        db.query(sqlStatement, userAccount, (err, result) => {
+//         let sqlStatement = 'INSERT INTO useraccount SET ? ';
+//         db.query(sqlStatement, userAccount, (err, result) => {
+//             if(err) return res.status(400).json({ error: err.sqlMessage });
+//             res.status(200).json(result);
+            
+//         });
+        db.query('INSERT INTO useraccount (Name, Email, Password, Phone) VALUES (?, ?, ?, ?)', [req.body.name, req.body.email, req.body.password, req.body.phone], (err, result) => {
             if(err) return res.status(400).json({ error: err.sqlMessage });
             res.status(200).json(result);
             
