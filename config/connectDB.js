@@ -1,10 +1,14 @@
 const mysql = require('mysql2');
 
 const config = {
-    host: 'localhost',
-    user: 'root',
-    password: 'P@$sw0rd',
-    database: 'insuranceappdb'
+   // host: 'localhost',
+    host: 'sql11.freesqldatabase.com',
+    // user: 'root',
+    user: 'sql11590775',
+    // password: 'P@$sw0rd',
+    password: 'vVUNEWxAc4',
+    // database: 'insuranceappdb'
+    database: 'sql11590775'
 };
 
 //Create connection
