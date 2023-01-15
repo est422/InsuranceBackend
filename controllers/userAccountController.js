@@ -57,8 +57,8 @@ module.exports.createUserAccount = async (req, res, next) => {
         if(row.length) return res.status(400).json({ message: "Email already exists"});
 
         //Hash password
-        // const salt = await bcrypt.genSalt(10);
-        // const hashedPassword = await bcrypt.hash(password, salt);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         //Create a user accouunt
         const userAccount = {
