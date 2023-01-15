@@ -8,8 +8,8 @@ async function main() {
     db;
 
     //PORT
-    // const PORT = process.env.PORT || port;
-    const PORT = 8000;
+    const PORT = process.env.PORT || port;
+//     const PORT = 8000;
 
     //CONNECT EXPRESS
     await app.listen(PORT, () => console.log('Server Running on:', PORT));
