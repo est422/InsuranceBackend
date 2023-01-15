@@ -30,12 +30,12 @@ module.exports.loginUser = async (req, res) => {
         // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
 
         // Check password
-        const validPassword = await bcrypt.compare(password, rows[0].Password);
-        if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
+//         const validPassword = await bcrypt.compare(password, rows[0].Password);
+//         if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
         
         // Create token
-        const token = await jwt.sign({ UserAccountId: rows[0].UserAccountId}, TOKEN_SECRET);
-        res.header('Authorization', token);
+//         const token = await jwt.sign({ UserAccountId: rows[0].UserAccountId}, TOKEN_SECRET);
+//         res.header('Authorization', token);
         // req.session.user = rows;
 
         return res.status(200).json(token);
