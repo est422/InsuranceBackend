@@ -4,11 +4,12 @@ const app = express();
 const morgan = require('morgan');
 const cors = require('cors');
 
-app.use(cors({
-    origin: origin,
-    methods: methods,
-    credentials: true
-}));
+// app.use(cors({
+//     origin: origin,
+//     methods: methods,
+//     credentials: true
+// }));
+app.use(cors());
 
 app.use(express.json());
 app.use(morgan('dev'));
