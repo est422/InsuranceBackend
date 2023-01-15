@@ -67,7 +67,7 @@ module.exports.createUserAccount = async (req, res, next) => {
             "Password": hashedPassword,
             "Phone": phone
         }
-        const sqlStatement = 'INSERT INTO useraccount SET ? ';
+        let sqlStatement = 'INSERT INTO useraccount SET ? ';
         db.query(sqlStatement, userAccount, (err, result) => {
             if(err) return res.status(400).json({ error: err.sqlMessage });
             res.status(200).json(result);
