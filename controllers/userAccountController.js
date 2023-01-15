@@ -38,7 +38,8 @@ module.exports.loginUser = async (req, res) => {
 //         res.header('Authorization', token);
         // req.session.user = rows;
 
-        return res.status(200).json(token);
+//         return res.status(200).json(token);
+        return res.status(200);
 
     });
 
