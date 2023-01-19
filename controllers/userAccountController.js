@@ -19,11 +19,11 @@ module.exports.getAllUserAccounts = async (req, res) => {
 //Login user
 module.exports.loginUser = async (req, res) => {
 
-    const {email, password} = req.body;
+    const {phone, password} = req.body;
 
-    //Check if email exists
-    const sql = 'SELECT * FROM useraccount WHERE Email = ?';
-    db.query(sql, email, async (err, rows) => {
+    //Check if phone exists
+    const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
+    db.query(sql, phone, async (err, rows) => {
 
         if(err || !rows.length) return res.status(400).json({ error: "User account does not exist" });
         return res.status(200).json({});
@@ -49,23 +49,23 @@ module.exports.loginUser = async (req, res) => {
 module.exports.createUserAccount = async (req, res, next) => {
 
     const {name, email, password, phone} = req.body;
-    //Check if email exists
-    const sql = 'SELECT * FROM useraccount WHERE Email = ? ';
-    db.query(sql, email, async (err, row) => {
+    //Check if phone exists
+    const sql = 'SELECT * FROM useraccount WHERE Phone = ? ';
+    db.query(sql, phone, async (err, row) => {
 
         if(err) return res.status(400).json({ error: err.sqlMessage });
 
         if(row.length) return res.status(400).json({ message: "Email already exists"});
 
         //Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+//         const salt = await bcrypt.genSalt(10);
+//         const hashedPassword = await bcrypt.hash(password, salt);
 
         //Create a user accouunt
         const userAccount = {
             "Name": name,
             "Email": email,
-            "Password": hashedPassword,
+            "Password": password,
             "Phone": phone
         }
 //         let sqlStatement = 'INSERT INTO useraccount SET ? ';
