@@ -26,20 +26,20 @@ module.exports.loginUser = async (req, res) => {
     db.query(sql, phone, async (err, rows) => {
 
         if(err || !rows.length) return res.status(400).json({ error: "User account does not exist" });
-        return res.status(200).json({});
+        // return res.status(200).json({});
 
         // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
 
         // Check password
-//         const validPassword = await bcrypt.compare(password, rows[0].Password);
-//         if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
+        const validPassword = await bcrypt.compare(password, rows[0].Password);
+        if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
         
         // Create token
-//         const token = await jwt.sign({ UserAccountId: rows[0].UserAccountId}, TOKEN_SECRET);
-//         res.header('Authorization', token);
+        const token = await jwt.sign({ Id: rows[0].id}, TOKEN_SECRET);
+        res.header('Authorization', token);
         // req.session.user = rows;
 
-//         return res.status(200).json(token);
+        return res.status(200).json(token);
 
     });
 
@@ -48,38 +48,58 @@ module.exports.loginUser = async (req, res) => {
 //Create user account
 module.exports.createUserAccount = async (req, res, next) => {
 
-    const {name, email, password, phone} = req.body;
+    const {firstName, lastName, email, password, phone} = req.body;
     //Check if phone exists
     const sql = 'SELECT * FROM useraccount WHERE Phone = ? ';
     db.query(sql, phone, async (err, row) => {
 
-        if(err) return res.status(400).json({ error: err.sqlMessage });
-
-        if(row.length) return res.status(400).json({ message: "Email already exists"});
-
-        //Hash password
-//         const salt = await bcrypt.genSalt(10);
-//         const hashedPassword = await bcrypt.hash(password, salt);
+        if(err) {
+            return res.status(400).json({ error: err.sqlMessage });
+        }else if(row.length) {
+            return res.status(400).json({ message: "Phone already exists"});
+        } else {
+            //Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         //Create a user accouunt
         const userAccount = {
-            "Name": name,
+            "FirstName": firstName,
+            "LastName": lastName,
             "Email": email,
-            "Password": password,
+            "Password": hashedPassword,
             "Phone": phone
         }
-//         let sqlStatement = 'INSERT INTO useraccount SET ? ';
-//         db.query(sqlStatement, userAccount, (err, result) => {
-//             if(err) return res.status(400).json({ error: err.sqlMessage });
-//             res.status(200).json(result);
-            
-//         });
-        db.query("INSERT INTO useraccount SET ?", userAccount, (err, result) => {
-                if(err) return res.status(400).json({ error: err.sqlMessage });
-                res.status(200).json(result);
-                
-            });
 
+        //Create user account
+        db.query("INSERT INTO useraccount SET ?", userAccount, async (err, result) => {
+            if(err) return res.status(400).json({ error: err.sqlMessage });
+             // Create token
+             const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
+            db.query(sql, phone, async (err, rows) => {
+
+                if(err || !rows.length) return res.status(400).json({ error: "User account does not exist" });
+                // return res.status(200).json({});
+
+                // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
+
+                // Check password
+                const validPassword = await bcrypt.compare(password, rows[0].Password);
+                if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
+                
+                // Create token
+                const token = await jwt.sign({ Id: rows[0].id}, TOKEN_SECRET);
+                res.header('Authorization', token);
+                // req.session.user = rows;
+
+                return res.status(200).json(token);
+
+            });
+        });
+        }
+        // req.session.user = rows;
+
+        // return res.status(200).json(rows);
 
     });
 
