@@ -79,7 +79,7 @@ module.exports.createUserAccount = async (req, res, next) => {
              const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
             db.query(sql, phone, async (err, rows) => {
 
-                if(err || !rows.length) return res.status(400).json({ error: "User account does not exist" });
+                if(err || !rows.length) return res.status(400).json({ error: err });
                 // return res.status(200).json({});
 
                 // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
