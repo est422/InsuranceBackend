@@ -36,7 +36,7 @@ module.exports.loginUser = async (req, res) => {
         
         // Create token
         const token = await jwt.sign({ Id: rows[0].id}, TOKEN_SECRET);
-        res.header('Authorization', token);
+        // res.header('Authorization', token);
         // req.session.user = rows;
 
         return res.status(200).json(token);
@@ -48,7 +48,7 @@ module.exports.loginUser = async (req, res) => {
 //Create user account
 module.exports.createUserAccount = async (req, res, next) => {
 
-    const {firstName, lastName, email, password, phone} = req.body;
+    const {firstName, lastName, email, password, phone, enteredPrice} = req.body;
     //Check if phone exists
     const sql = 'SELECT * FROM useraccount WHERE Phone = ? ';
     db.query(sql, phone, async (err, row) => {
@@ -68,7 +68,8 @@ module.exports.createUserAccount = async (req, res, next) => {
             "LastName": lastName,
             "Email": email,
             "Password": hashedPassword,
-            "Phone": phone
+            "Phone": phone,
+            "EnteredAmount": enteredPrice
         }
 
         //Create user account
@@ -89,7 +90,7 @@ module.exports.createUserAccount = async (req, res, next) => {
                 
                 // Create token
                 const token = await jwt.sign({ Id: rows[0].id}, TOKEN_SECRET);
-                res.header('Authorization', token);
+                // res.header('Authorization', token);
                 // req.session.user = rows;
 
                 return res.status(200).json(token);
