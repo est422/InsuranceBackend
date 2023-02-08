@@ -7,6 +7,9 @@ const UserAccountController = require('../controllers/userAccountController');
 //Get all UserAccounts
 router.get('/', UserAccountController.getAllUserAccounts);
 
+//Get UserAccount By Id
+router.get('/:id', UserAccountController.getUser);
+
 //Post UserAccount
 router.post('/create', UserAccountController.createUserAccount);
 

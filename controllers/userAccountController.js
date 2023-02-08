@@ -4,6 +4,17 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/connectDB');
 const { TOKEN_SECRET } = require('../config/default.json');
 
+//Get user by id
+module.exports.getUser = async (req, res) => {
+
+    const userAccountId = req.params.id
+    const sql = 'SELECT * FROM useraccount WHERE id = ?';
+    db.query(sql, userAccountId, (err, result) => {
+        if(err) return res.status(400).json({ error: err.sqlMessage });
+        return res.status(200).json(result);
+    });
+
+};
 //Get all user accounts
 module.exports.getAllUserAccounts = async (req, res) => {
 
