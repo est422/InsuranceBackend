@@ -18,7 +18,7 @@ app.use(morgan('dev'));
 const userAccountRoutes = require('./routes/userAccountRoutes');
 
 //Route middleware
-app.use('/api/user', userAccountRoutes);
+app.use('/api/users', userAccountRoutes);
 
 
 module.exports = app;

@@ -8,7 +8,7 @@ const UserAccountController = require('../controllers/userAccountController');
 router.get('/', UserAccountController.getAllUserAccounts);
 
 //Get UserAccount By Id
-router.get('/profile/:id', UserAccountController.getUser);
+router.get('/user/profile/:id', UserAccountController.getUser);
 
 //Post UserAccount
 router.post('/create', UserAccountController.createUserAccount);
@@ -17,7 +17,7 @@ router.post('/create', UserAccountController.createUserAccount);
 router.post('/login', UserAccountController.loginUser);
 
 //Put UserAccount
-router.put('/edit/:id', UserAccountController.editUserAccount);
+router.put('/user/edit/:id', UserAccountController.editUserAccount);
 
 //Delete UserAccount
 router.delete('/delete/:id', UserAccountController.deleteUserAccount);
