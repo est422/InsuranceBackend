@@ -123,7 +123,7 @@ module.exports.editUserAccount = async (req, res) => {
     const id = req.params.id;
     let userAccount = req.body;
     const sql = 'UPDATE useraccount SET ?  WHERE id = ?';
-    db.query(sql, [userAccount, id], (err, result) => {
+    db.query(sql, [req.body, id], (err, result) => {
         if(err) return res.status(400).json({ error: err.sqlMessage });
         res.status(200).json(result);
 

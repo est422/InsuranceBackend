@@ -8,7 +8,7 @@ const UserAccountController = require('../controllers/userAccountController');
 router.get('/', UserAccountController.getAllUserAccounts);
 
 //Get UserAccount By Id
-router.get('/:id', UserAccountController.getUser);
+router.get('profile/:id', UserAccountController.getUser);
 
 //Post UserAccount
 router.post('/create', UserAccountController.createUserAccount);
