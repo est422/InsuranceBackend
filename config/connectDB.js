@@ -3,17 +3,17 @@ const mysql = require('mysql2');
 const config = {
 //    host: 'localhost',
     // host: 'sql11.freesqldatabase.com',
-    host: 'sql12.freemysqlhosting.net',
+    host: 'sql7.freemysqlhosting.net',
     // user: 'root',
     // user: 'sql11592485',
-    user: 'sql12596276',
+    user: 'sql7603304',
     // password: 'P@$sw0rd',
     // password: 'vVUNEWxAc4',
     // password: 'U5CyZcIQgA',
-    password: 'E1S3z2hRHH',
+    password: 'EREaI6SN1E',
     // database: 'insuranceappdb'
     // database: 'sql11592485'
-    database: 'sql12596276'
+    database: 'sql7603304'
 };
 
 //Create connection
