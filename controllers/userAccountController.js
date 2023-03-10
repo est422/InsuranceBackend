@@ -65,8 +65,10 @@ module.exports.createUserAccount = async (req, res, next) => {
     db.query(sql, phone, async (err, row) => {
 
         if(err) {
+            // console.log('err', err);
             return res.status(400).json({ error: err.sqlMessage });
         }else if(row.length) {
+            // console.log('err', err);
             return res.status(400).json({ message: "Phone already exists"});
         } else {
             //Hash password
@@ -77,7 +79,7 @@ module.exports.createUserAccount = async (req, res, next) => {
         const userAccount = {
             "FirstName": firstName,
             "LastName": lastName,
-            "Email": email,
+            // "Email": email,
             "Password": hashedPassword,
             "Phone": phone,
             "EnteredAmount": enteredPrice

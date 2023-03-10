@@ -6,14 +6,14 @@ const config = {
     host: 'sql7.freemysqlhosting.net',
     // user: 'root',
     // user: 'sql11592485',
-    user: 'sql7603304',
+    user: 'sql7604608',
     // password: 'P@$sw0rd',
     // password: 'vVUNEWxAc4',
     // password: 'U5CyZcIQgA',
-    password: 'EREaI6SN1E',
+    password: 'BqkmN6zj3a',
     // database: 'insuranceappdb'
     // database: 'sql11592485'
-    database: 'sql7603304'
+    database: 'sql7604608'
 };
 
 //Create connection
