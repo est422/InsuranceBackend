@@ -8,22 +8,48 @@ const { TOKEN_SECRET } = require('../config/default.json');
 module.exports.getUser = async (req, res) => {
 
     const userAccountId = req.params.id
-    const sql = 'SELECT * FROM useraccount WHERE id = ?';
-    db.query(sql, userAccountId, (err, result) => {
-        if(err) return res.status(400).json({ error: err.sqlMessage });
-        return res.status(200).json(result);
-    });
+    if (!userAccountId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        // Get user account by ID
+        const sql = 'SELECT * FROM useraccount WHERE id = ?';
+        const [result] = await db.promise().query(sql, [userAccountId]);
+
+        // Check if user account exists
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'User account not found' });
+        }
+
+        // Return the result
+        return res.status(200).json({
+            message: 'User account fetched successfully',
+            data: result[0]
+        });
+    } catch (err) {
+        console.error('Error fetching user account:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 
 };
 //Get all user accounts
 module.exports.getAllUserAccounts = async (req, res) => {
 
-    const sql = 'SELECT * FROM useraccount';
-    db.query(sql, (err, result) => {
-        if(err) return res.status(400).json({ error: err.sqlMessage });
-        return res.status(200).json(result);
+    try{
+        const sql = 'SELECT * FROM useraccount';
+        const [result] = db.promise().query(sql);
 
-    });
+        // Return result
+        return res.status(200).json({
+            message: 'User accounts fetched successfully',
+            data: result
+        });
+
+    }catch (err) {
+        console.error('Error fetching user accounts:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 
 };
 
@@ -32,116 +58,172 @@ module.exports.loginUser = async (req, res) => {
 
     const {phone, password} = req.body;
 
-    //Check if phone exists
-    const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
-    db.query(sql, phone, async (err, rows) => {
+    // Input validation
+    if (!phone || !password) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
 
-        if(err || !rows.length) return res.status(400).json({ error: "User account does not exist" });
-        // return res.status(200).json({});
+    try {
+        // Check if phone exists
+        const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
+        const [rows] = await db.promise().query(sql, [phone]);
 
-        // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
+        if (!rows.length) {
+            return res.status(400).json({ message: 'User account does not exist' });
+        }
 
-        // Check password
+        // Check password validity
         const validPassword = await bcrypt.compare(password, rows[0].Password);
-        if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
-        
-        // Create token
-        const token = await jwt.sign({ Id: rows[0].id}, TOKEN_SECRET);
-        // res.header('Authorization', token);
-        // req.session.user = rows;
+        if (!validPassword) {
+            return res.status(400).json({ message: 'Invalid password' });
+        }
 
-        return res.status(200).json(token);
+        // Generate JWT token with user details
+        const token = await jwt.sign(
+            { Id: rows[0].id, Role: rows[0].Role }, 
+            TOKEN_SECRET,
+            { expiresIn: '1h' } // Optional: Set token expiration time
+        );
 
-    });
+        // Return token in the response
+        return res.status(200).json({
+            message: 'Login successful',
+            token: token,
+            userId: rows[0].id,
+            role: rows[0].Role // Including the role of the user in the response (optional)
+        });
+    } catch (err) {
+        console.error('Error during login:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 
 };
 
 //Create user account
 module.exports.createUserAccount = async (req, res, next) => {
 
-    const {firstName, lastName, email, password, phone, enteredPrice} = req.body;
-    //Check if phone exists
-    const sql = 'SELECT * FROM useraccount WHERE Phone = ? ';
-    db.query(sql, phone, async (err, row) => {
+    const {firstName, lastName, email, password, phone, enteredPrice, role} = req.body;
 
-        if(err) {
-            // console.log('err', err);
-            return res.status(400).json({ error: err.sqlMessage });
-        }else if(row.length) {
-            // console.log('err', err);
-            return res.status(400).json({ message: "Phone already exists"});
-        } else {
-            //Hash password
+    // Input validation
+    if (!firstName || !lastName || !password || !phone || !role) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'client'];
+    if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    try {
+        // Check if phone number exists
+        const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
+        const [existingUser] = await db.promise().query(sql, [phone]);
+
+        if (existingUser.length) {
+            return res.status(400).json({ message: 'Phone number already exists' });
+        }
+
+        // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        //Create a user accouunt
+        // Prepare user account object
         const userAccount = {
-            "FirstName": firstName,
-            "LastName": lastName,
-            // "Email": email,
-            "Password": hashedPassword,
-            "Phone": phone,
-            "EnteredAmount": enteredPrice
+            FirstName: firstName,
+            LastName: lastName,
+            Password: hashedPassword,
+            Phone: phone,
+            EnteredAmount: enteredPrice,
+            Email: email,
+            Role: role
+        };
+
+        // Create the user account
+        const insertQuery = 'INSERT INTO useraccount SET ?';
+        const [result] = await db.promise().query(insertQuery, userAccount);
+
+        // Retrieve the newly created user
+        const userQuery = 'SELECT * FROM useraccount WHERE Phone = ?';
+        const [userRows] = await db.promise().query(userQuery, [phone]);
+
+        if (!userRows.length) {
+            return res.status(400).json({ message: 'User account creation failed' });
         }
 
-        //Create user account
-        db.query("INSERT INTO useraccount SET ?", userAccount, async (err, result) => {
-            if(err) return res.status(400).json({ error: err.sqlMessage });
-             // Create token
-             const sql = 'SELECT * FROM useraccount WHERE Phone = ?';
-            db.query(sql, phone, async (err, rows) => {
-
-                if(err || !rows.length) return res.status(400).json({ error: err });
-                // return res.status(200).json({});
-
-                // if(!rows.length) return res.status(400).json({ error: "User account does not exist" });
-
-                // Check password
-                const validPassword = await bcrypt.compare(password, rows[0].Password);
-                if(!validPassword) return res.status(400).json({ error: "Password is not valid" });
-                
-                // Create token
-                const token = await jwt.sign({ Id: rows[0].id}, TOKEN_SECRET);
-                // res.header('Authorization', token);
-                // req.session.user = rows;
-
-                return res.status(200).json(token);
-
-            });
-        });
+        // Check password validity
+        const validPassword = await bcrypt.compare(password, userRows[0].Password);
+        if (!validPassword) {
+            return res.status(400).json({ message: 'Invalid password' });
         }
-        // req.session.user = rows;
 
-        // return res.status(200).json(rows);
+        // Generate JWT token
+        const token = await jwt.sign({ Id: userRows[0].id, Role: userRows[0].Role }, TOKEN_SECRET);
 
-    });
+        // Return the token
+        return res.status(200).json({ token });
+    } catch (err) {
+        console.error('Error:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 
 };
 
 //Update user account
-module.exports.editUserAccount = async (req, res) => {
+module.exports.updateUserAccount = (req, res, next) => {
+    const userAccountId = req.params.id;
+    const { firstName, lastName, phone, enteredPrice } = req.body;
 
-    const id = req.params.id;
-    let userAccount = req.body;
-    const sql = 'UPDATE useraccount SET ?  WHERE id = ?';
-    db.query(sql, [req.body, id], (err, result) => {
-        if(err) return res.status(400).json({ error: err.sqlMessage });
-        res.status(200).json(result);
+    // Prepare the updated fields
+    const updatedFields = {};
 
+    // Conditionally add fields to update (to avoid updating fields unintentionally)
+    if (firstName) updatedFields.FirstName = firstName;
+    if (lastName) updatedFields.LastName = lastName;
+    if (phone) updatedFields.Phone = phone;
+    if (enteredPrice) updatedFields.EnteredAmount = enteredPrice;
+
+    if (Object.keys(updatedFields).length === 0) {
+        return res.status(400).json({ message: 'No fields to update' });
+    }
+
+    const sql = 'UPDATE useraccount SET ? WHERE id = ?';
+    db.query(sql, [updatedFields, userAccountId], (err, result) => {
+        if (err) return res.status(400).json({ error: err.sqlMessage });
+
+        // Check if any rows were affected (to make sure the update was successful)
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'User account not found' });
+        }
+
+        // Return success message and updated result
+        return res.status(200).json({
+            message: 'User account updated successfully',
+            data: updatedFields
+        });
     });
-
 };
 
 //Delete user account
 module.exports.deleteUserAccount = async (req, res) => {
+    const userAccountId = req.params.id;
 
-    const id = req.params.id;
-    const sql = 'DELETE FROM useraccount WHERE Email = ?';
-    db.query(sql, id, (err, result) => {
-        if(err) return res.status(400).json({ error: err.sqlMessage });
-        res.status(200).json(result);
+    const sql = 'DELETE FROM useraccount WHERE id = ?'; // Using 'id' to delete
+    db.query(sql, [userAccountId], (err, result) => {
+        if (err) {
+            console.error(err); // Optionally log the error for debugging
+            return res.status(400).json({ error: err.sqlMessage });
+        }
 
+        if (result.affectedRows === 0) {
+            // If no rows are affected, the user was not found
+            return res.status(404).json({ message: 'User account not found' });
+        }
+
+        // Successfully deleted
+        res.status(200).json({
+            message: 'User account deleted successfully',
+            data: result
+        });
     });
-
 };
