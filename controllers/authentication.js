@@ -1,5 +1,6 @@
+// require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const { TOKEN_SECRET } = require('../config/default.json');
+// const { TOKEN_SECRET } = require('../config/default.json');
 const decode = require('jsonwebtoken/decode');
 // const User = require('../models/users');
 const db = require('../config/connectDB');

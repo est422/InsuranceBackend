@@ -17,7 +17,7 @@ router.post('/create', UserAccountController.createUserAccount);
 router.post('/login', UserAccountController.loginUser);
 
 //Put UserAccount
-router.put('/user/edit/:id', UserAccountController.editUserAccount);
+router.put('/user/edit/:id', UserAccountController.updateUserAccount);
 
 //Delete UserAccount
 router.delete('/delete/:id', UserAccountController.deleteUserAccount);

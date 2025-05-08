@@ -1,4 +1,5 @@
-const { TOKEN_SECRET, origin, methods } = require('./config/default.json');
+require('dotenv').config();
+// const { TOKEN_SECRET, origin, methods } = require('./config/default.json');
 const express = require('express');
 const app = express();
 const morgan = require('morgan');

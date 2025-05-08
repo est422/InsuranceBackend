@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const { json } = require('body-parser');
 const jwt = require('jsonwebtoken');
 const db = require('../config/connectDB');
-const { TOKEN_SECRET } = require('../config/default.json');
+// const { TOKEN_SECRET } = require('../config/default.json');
 
 //Get user by id
 module.exports.getUser = async (req, res) => {
@@ -22,10 +22,16 @@ module.exports.getUser = async (req, res) => {
             return res.status(404).json({ message: 'User account not found' });
         }
 
+        // Remove password from each user account object
+        const sanitizedResult = result.map(user => {
+            const { Password, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+        });
+
         // Return the result
         return res.status(200).json({
             message: 'User account fetched successfully',
-            data: result[0]
+            data: sanitizedResult
         });
     } catch (err) {
         console.error('Error fetching user account:', err);
@@ -38,12 +44,17 @@ module.exports.getAllUserAccounts = async (req, res) => {
 
     try{
         const sql = 'SELECT * FROM useraccount';
-        const [result] = db.promise().query(sql);
+        const [result] = await db.promise().query(sql);
 
+        // Remove password from each user account object
+        const sanitizedResult = result.map(user => {
+            const { Password, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+        });
         // Return result
         return res.status(200).json({
             message: 'User accounts fetched successfully',
-            data: result
+            data: sanitizedResult
         });
 
     }catch (err) {
@@ -81,16 +92,16 @@ module.exports.loginUser = async (req, res) => {
         // Generate JWT token with user details
         const token = await jwt.sign(
             { Id: rows[0].id, Role: rows[0].Role }, 
-            TOKEN_SECRET,
-            { expiresIn: '1h' } // Optional: Set token expiration time
+            process.env.TOKEN_SECRET,
+            { expiresIn: '1h' }
         );
 
         // Return token in the response
         return res.status(200).json({
             message: 'Login successful',
             token: token,
-            userId: rows[0].id,
-            role: rows[0].Role // Including the role of the user in the response (optional)
+            // userId: rows[0].id,
+            // role: rows[0].Role
         });
     } catch (err) {
         console.error('Error during login:', err);
@@ -121,14 +132,14 @@ module.exports.createUserAccount = async (req, res, next) => {
         const [existingUser] = await db.promise().query(sql, [phone]);
 
         if (existingUser.length) {
-            return res.status(400).json({ message: 'Phone number already exists' });
+            return res.status(400).json({ message: 'User account creation failed' });
         }
 
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Prepare user account object
+        // User account object
         const userAccount = {
             FirstName: firstName,
             LastName: lastName,
@@ -143,7 +154,7 @@ module.exports.createUserAccount = async (req, res, next) => {
         const insertQuery = 'INSERT INTO useraccount SET ?';
         const [result] = await db.promise().query(insertQuery, userAccount);
 
-        // Retrieve the newly created user
+        // Created user
         const userQuery = 'SELECT * FROM useraccount WHERE Phone = ?';
         const [userRows] = await db.promise().query(userQuery, [phone]);
 
@@ -158,7 +169,7 @@ module.exports.createUserAccount = async (req, res, next) => {
         }
 
         // Generate JWT token
-        const token = await jwt.sign({ Id: userRows[0].id, Role: userRows[0].Role }, TOKEN_SECRET);
+        const token = await jwt.sign({ Id: userRows[0].id, Role: userRows[0].Role }, process.env.TOKEN_SECRET);
 
         // Return the token
         return res.status(200).json({ token });
@@ -172,15 +183,14 @@ module.exports.createUserAccount = async (req, res, next) => {
 //Update user account
 module.exports.updateUserAccount = (req, res, next) => {
     const userAccountId = req.params.id;
-    const { firstName, lastName, phone, enteredPrice } = req.body;
+    const { firstName, lastName, phone, email, enteredPrice } = req.body;
 
-    // Prepare the updated fields
     const updatedFields = {};
 
-    // Conditionally add fields to update (to avoid updating fields unintentionally)
     if (firstName) updatedFields.FirstName = firstName;
     if (lastName) updatedFields.LastName = lastName;
     if (phone) updatedFields.Phone = phone;
+    if (email) updatedFields.Email = email;
     if (enteredPrice) updatedFields.EnteredAmount = enteredPrice;
 
     if (Object.keys(updatedFields).length === 0) {
@@ -191,7 +201,7 @@ module.exports.updateUserAccount = (req, res, next) => {
     db.query(sql, [updatedFields, userAccountId], (err, result) => {
         if (err) return res.status(400).json({ error: err.sqlMessage });
 
-        // Check if any rows were affected (to make sure the update was successful)
+        // Check if any rows were affected
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'User account not found' });
         }
@@ -208,15 +218,14 @@ module.exports.updateUserAccount = (req, res, next) => {
 module.exports.deleteUserAccount = async (req, res) => {
     const userAccountId = req.params.id;
 
-    const sql = 'DELETE FROM useraccount WHERE id = ?'; // Using 'id' to delete
+    const sql = 'DELETE FROM useraccount WHERE id = ?';
     db.query(sql, [userAccountId], (err, result) => {
         if (err) {
-            console.error(err); // Optionally log the error for debugging
+            console.error(err);
             return res.status(400).json({ error: err.sqlMessage });
         }
 
         if (result.affectedRows === 0) {
-            // If no rows are affected, the user was not found
             return res.status(404).json({ message: 'User account not found' });
         }
 
