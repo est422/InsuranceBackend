@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const { json } = require('body-parser');
 const jwt = require('jsonwebtoken');
 const db = require('../config/connectDB');
+const { createUserSchema, loginSchema, updateUserSchema } = require('../middleware/userSchema');
 // const { TOKEN_SECRET } = require('../config/default.json');
 
 //Get user by id
@@ -67,12 +68,21 @@ module.exports.getAllUserAccounts = async (req, res) => {
 //Login user
 module.exports.loginUser = async (req, res) => {
 
-    const {phone, password} = req.body;
+    // const {phone, password} = req.body;
+    const { error, value } = loginSchema.validate(req.body);
 
-    // Input validation
-    if (!phone || !password) {
-        return res.status(400).json({ message: 'Missing required fields' });
+    if (error) {
+        return res.status(400).json({
+            message: 'Validation error',
+            details: error.details.map(detail => detail.message)
+        });
     }
+
+    const { password, phone } = value;
+    // Input validation
+    // if (!phone || !password) {
+    //     return res.status(400).json({ message: 'Missing required fields' });
+    // }
 
     try {
         // Check if phone exists
@@ -113,18 +123,17 @@ module.exports.loginUser = async (req, res) => {
 //Create user account
 module.exports.createUserAccount = async (req, res, next) => {
 
-    const {firstName, lastName, email, password, phone, enteredPrice, role} = req.body;
+    // const {firstName, lastName, email, password, phone, enteredPrice, role} = req.body;
+    const { error, value } = createUserSchema.validate(req.body);
 
-    // Input validation
-    if (!firstName || !lastName || !password || !phone || !role) {
-        return res.status(400).json({ message: 'Missing required fields' });
+    if (error) {
+        return res.status(400).json({
+            message: 'Validation error',
+            details: error.details.map(detail => detail.message)
+        });
     }
 
-    // Validate role
-    const validRoles = ['admin', 'client'];
-    if (!validRoles.includes(role)) {
-        return res.status(400).json({ message: 'Invalid role' });
-    }
+    const { firstName, lastName, email, password, phone, enteredPrice } = value;
 
     try {
         // Check if phone number exists
@@ -147,7 +156,7 @@ module.exports.createUserAccount = async (req, res, next) => {
             Phone: phone,
             EnteredAmount: enteredPrice,
             Email: email,
-            Role: role
+            Role: "client"
         };
 
         // Create the user account
@@ -183,7 +192,17 @@ module.exports.createUserAccount = async (req, res, next) => {
 //Update user account
 module.exports.updateUserAccount = (req, res, next) => {
     const userAccountId = req.params.id;
-    const { firstName, lastName, phone, email, enteredPrice } = req.body;
+    // const { firstName, lastName, phone, email, enteredPrice } = req.body;
+    const { error, value } = updateUserSchema.validate(req.body);
+
+    if (error) {
+        return res.status(400).json({
+            message: 'Validation error',
+            details: error.details.map(detail => detail.message)
+        });
+    }
+
+    const { firstName, lastName, email, phone, enteredPrice } = value;
 
     const updatedFields = {};
 
